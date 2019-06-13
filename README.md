@@ -7,4 +7,4 @@
     
 ## result
   
-![图片alt](https://github.com/talebolano/resnet_lstm_Urban_Region_Function_Classification/tree/master/image/test.jpg)
+![result](https://github.com/talebolano/resnet_lstm_Urban_Region_Function_Classification/tree/master/image/test.jpg)
