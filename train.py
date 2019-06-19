@@ -8,6 +8,8 @@ import random
 import numpy as np
 from config import *
 from torchvision import transforms as T
+import torch.nn.functional as F
+
 
 
 def get_resnet152(pretrained=False,num_classes=9):
@@ -20,6 +22,25 @@ def get_resnet50(pretrained=False,num_classes=9,lstm_layers=3):
     img_model = resnet50(pretrained,num_classes,lstm_layers)
     #img_model.fc = nn.Linear(2048, num_classes)
     return img_model
+
+
+class focal_loss(nn.Module):
+    def __init__(self, focusing_param=2, balance_param=1):
+        super(focal_loss, self).__init__()
+
+        self.focusing_param = focusing_param
+        self.balance_param = balance_param
+
+    def forward(self, output, targets):
+        targets_num = (targets >-1).sum()  # [N,H,W]
+        logpt = -F.cross_entropy(output, targets,reduction='none')
+        pt = torch.exp(logpt)
+
+        focal_loss =( -((1 - pt) ** self.focusing_param) * logpt).sum()
+
+        balanced_focal_loss = self.balance_param * focal_loss/targets_num
+
+        return balanced_focal_loss
 
 
 
