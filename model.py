@@ -55,9 +55,10 @@ class Bottleneck(nn.Module):
 
 class ResNet(nn.Module):
 
-    def __init__(self, block, layers, num_classes=1000):
+    def __init__(self, block, layers, num_classes=1000,lstm_layers=3):
         self.inplanes = 64
         super(ResNet, self).__init__()
+        self.lstm_layers = lstm_layers
         self.dropout = nn.Dropout(p=0.5)
         self.conv1 = nn.Conv2d(3, 64, kernel_size=7, stride=2, padding=3,
                                bias=False)
@@ -71,7 +72,7 @@ class ResNet(nn.Module):
         self.layer4 = self._make_layer(block, 512, layers[3], stride=2)
         self.avgpool = nn.AdaptiveAvgPool2d(1) #[n,2048,1,1]
         #self.fc_my = nn.Linear(512 * block.expansion, num_classes)
-        self.lstm = nn.LSTM(24,128,num_layers=3,batch_first=True,dropout=0.2,bidirectional=True)
+        self.lstm = nn.LSTM(24,128,num_layers=lstm_layers,batch_first=True,dropout=0.2,bidirectional=True)
         self.linear = nn.Linear(46592,2048)
 
         self.fc_1 = nn.Linear(4096, 1024)
@@ -105,8 +106,8 @@ class ResNet(nn.Module):
     def forward(self, x,y,hidden=None):
 
         if hidden is None:
-            h_0 = y.data.new(6,y.size()[0],128).fill_(0).float()
-            c_0 = y.data.new(6,y.size()[0],128).fill_(0).float()
+            h_0 = y.data.new(self.lstm_layers*2,y.size()[0],128).fill_(0).float()
+            c_0 = y.data.new(self.lstm_layers*2,y.size()[0],128).fill_(0).float()
         else:
             h_0,c_0 = hidden
 
@@ -153,13 +154,13 @@ def resnet152(pretrained=False, classes=9):
         model.load_state_dict(model_zoo.load_url(model_urls['resnet152']),strict=False)
     return model
 
-def resnet50(pretrained=False, classes=9):
+def resnet50(pretrained=False, classes=9,lstm_layers=3):
     """Constructs a ResNet-50 model.
 
     Args:
         pretrained (bool): If True, returns a model pre-trained on ImageNet
     """
-    model = ResNet(Bottleneck, [3, 4, 6, 3], classes)
+    model = ResNet(Bottleneck, [3, 4, 6, 3], classes,lstm_layers)
     if pretrained:
         model.load_state_dict(model_zoo.load_url(model_urls['resnet50']),strict=False)
     return model

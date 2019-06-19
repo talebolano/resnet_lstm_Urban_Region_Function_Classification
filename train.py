@@ -16,8 +16,8 @@ def get_resnet152(pretrained=False,num_classes=9):
     return img_model
 
 
-def get_resnet50(pretrained=False,num_classes=9):
-    img_model = resnet50(pretrained)
+def get_resnet50(pretrained=False,num_classes=9,lstm_layers=3):
+    img_model = resnet50(pretrained,num_classes,lstm_layers)
     #img_model.fc = nn.Linear(2048, num_classes)
     return img_model
 
@@ -74,6 +74,7 @@ def main():
         for i,(image,visit,label) in enumerate(train_dataloader):
             optimper.zero_grad()
             image = image.cuda()
+            visit = visit.cuda()
             label = label.cuda()
             pred,hidden = img_model(image,visit)
             #pred, hidden = img_model(visit)

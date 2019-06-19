@@ -37,7 +37,7 @@ def test():
 
 if __name__=='__main__':
     parser = argparse.ArgumentParser()
-    parser.add_argument('--weight',default='checkpoint/ep12.pth',type=str)
+    parser.add_argument('--weight',default='checkpoint/ep192_acc0.65875.pth',type=str)
     parser.add_argument('--test_folder',default='data/baidu_Urban/test/',type=str)
     parser.add_argument('--img_size', default=100, type=int)
     parser.add_argument('--output',default='AreaID.txt',type=str)
