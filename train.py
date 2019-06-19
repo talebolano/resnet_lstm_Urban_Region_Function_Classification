@@ -85,6 +85,7 @@ def main():
                             pin_memory=True)
     img_model = nn.DataParallel(img_model.cuda())
     weight = torch.Tensor([0.038, 0.049, 0.102, 0.269, 0.105, 0.066, 0.104, 0.140, 0.127])
+    #crit = focal_loss(2,weight)
     crit = nn.CrossEntropyLoss(weight=weight).cuda()
     optimper = torch.optim.SGD(img_model.parameters(),opt.lr,momentum=opt.momen,weight_decay=opt.decay)
     scheduler = torch.optim.lr_scheduler.StepLR(optimper,opt.ep_step,0.5)
