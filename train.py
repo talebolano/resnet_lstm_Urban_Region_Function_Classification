@@ -33,14 +33,14 @@ class focal_loss(nn.Module):
 
     def forward(self, output, targets):
         targets_num = (targets >-1).sum()  # [N,H,W]
-        logpt = -F.cross_entropy(output, targets,reduction='none')
-        pt = torch.exp(logpt)
+        logpt = -F.cross_entropy(output, targets,reduction='none',weight=self.balance_param)
+        origlogpt = -F.cross_entropy(output, targets, reduction='none')
+        pt = torch.exp(origlogpt)
 
-        focal_loss =( -((1 - pt) ** self.focusing_param) * logpt).sum()
+        focal_loss =( -((1 - pt) ** self.focusing_param) * logpt).sum()/targets_num
 
-        balanced_focal_loss = self.balance_param * focal_loss/targets_num
 
-        return balanced_focal_loss
+        return focal_loss
 
 
 
@@ -105,25 +105,28 @@ def main():
             optimper.step()
             if (i+1)%10==0:
                 print("epochs: {},iter:{},loss: {}".format(ep+1,i+1,float(loss)))
+        torch.cuda.empty_cache()
         if (ep+1) % opt.val_epochs ==0:
             img_model.eval()
             correct = 0
-            for i,(image,visit,label) in enumerate(val_dataloader):
-                image = image.cuda()
-                label = label.cuda()
-                n = label.shape[0]
-                pred,hidden = img_model(image,visit)
-                #pred, hidden = img_model(visit)
-                _,predict = pred.topk(1,1)
-                predict = predict.t()
-                correct += float(torch.sum(predict.eq(label)))/n
+            with torch.no_grad():
+                for i,(image,visit,label) in enumerate(val_dataloader):
+                    image = image.cuda()
+                    label = label.cuda()
+                    n = label.shape[0]
+                    pred,hidden = img_model(image,visit)
+                    #pred, hidden = img_model(visit)
+                    _,predict = pred.topk(1,1)
+                    predict = predict.t()
+                    correct += float(torch.sum(predict.eq(label)))/n
 
-            acc = float(correct)/(i+1)
-            print("epochs: {},acc: {}".format(ep+1,float(acc)))
-            best_acc.append(acc)
-            if acc==max(best_acc):
-                torch.save(img_model.module.state_dict(),"{}/ep{}_acc{}.pth".format(opt.ckpt,ep+1,acc))
-            img_model.train()
+                acc = float(correct)/(i+1)
+                print("epochs: {},acc: {}".format(ep+1,float(acc)))
+                best_acc.append(acc)
+                if acc==max(best_acc):
+                    torch.save(img_model.module.state_dict(),"{}/ep{}_acc{}.pth".format(opt.ckpt,ep+1,acc))
+                img_model.train()
+            torch.cuda.empty_cache()
 
 if __name__ == '__main__':
     parser = argparse.ArgumentParser()
