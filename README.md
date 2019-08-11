@@ -6,5 +6,5 @@
     project work of team"鸭子还在湖水里"
     
 ## result
-  
+只参与了初赛，很幸运进了复赛
 ![result](https://raw.githubusercontent.com/talebolano/resnet_lstm_Urban_Region_Function_Classification/master/image/test.jpg)
